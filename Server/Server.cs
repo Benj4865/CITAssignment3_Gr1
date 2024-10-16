@@ -66,7 +66,7 @@ public class Server
                 }
             }
 
-            if (json.Method == "echo")
+            if (json.Method == "echo" && json.Body != null)
             {
                 var response = new Response
                 {
@@ -76,6 +76,10 @@ public class Server
                 var json_resp = ToJson(response);
                 WriteToStream(stream, json_resp);
                 return;
+            }
+            if (json.Body == null)
+            {
+                errorlist.Add("missing body");
             }
 
             if (json.Path == null)
@@ -93,8 +97,6 @@ public class Server
                 {
                     errorlist.Add("illegal date");
                 }
-
-
             }
 
             if (json.Body != null)
@@ -106,6 +108,26 @@ public class Server
                 catch
                 {
                     errorlist.Add("illegal body");
+                }
+            }
+
+            if (json.Method == "read" && json.Path != null)
+            {
+                var lastCharacter = json.Path[json.Path.Length - 1];
+
+                if (!int.TryParse(lastCharacter.ToString(), out var n))
+                {
+
+                    var response = new Response
+                    {
+                        Status = "4 Bad Request"
+                    };
+
+                    var json_resp = ToJson(response);
+                    WriteToStream(stream, json_resp);
+
+                    Console.WriteLine("response sent");
+                    return;
                 }
             }
 
